@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"log"
 	"net/http"
@@ -18,6 +19,7 @@ var (
 	app    config.Application
 	addr   = flag.String("addr", ":8080", "HTTP network address")
 	secret = flag.String("secret", "Aof@fpaOEdAJepFls=(5&aBPeKOfjAk3", "Secret key for the session cookies")
+	dsn    = flag.String("dsn", "web:pass@/qnotes?parseTime=true", "MySQL data source name")
 	// TODO: Setup MySQL tables for demo mode.
 	// demo := flag.Bool("demo", "false", "Demo mode")
 )
@@ -25,6 +27,13 @@ var (
 func main() {
 	flag.Parse()
 	app = newApp()
+
+	db, err := openDB(*dsn)
+	if err != nil {
+		app.ErrorLog.Fatal(err)
+	}
+
+	defer db.Close()
 
 	helpers.NewHelpers(&app)
 	render.NewRenderer(&app)
@@ -62,4 +71,16 @@ func newApp() config.Application {
 	app.TemplateCache = tc
 
 	return app
+}
+
+// openDB wraps sql.Open and returns a sql.DB connection pool for the given DSN.
+func openDB(dsn string) (*sql.DB, error) {
+	if db, err := sql.Open("mysql", dsn); err != nil {
+		return nil, err
+		// Ping creates and verifies a connection.
+	} else if err = db.Ping(); err != nil {
+		return nil, err
+	} else {
+		return db, nil
+	}
 }
