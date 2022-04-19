@@ -1,0 +1,26 @@
+{{template "base" .}}
+
+{{define "title"}}Log In{{end}}
+
+{{define "main"}}
+<div class="form-auth form-login">
+  <form action="/user/login" method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+    <img class="mb-4" src="/static/img/person-circle.svg" alt="person-icon" width="52" height="52">
+    <h1 class="h3 mb-3 fw-normal">Please log in</h1>
+
+    <div class="form-floating">
+      <input type="email" class="form-control" id="floatingEmail" placeholder="Email address">
+      <label for="floatingEmail">Email address</label>
+    </div>
+
+    <div class="form-floating">
+      <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
+      <label for="floatingPassword">Password</label>
+    </div>
+
+    <button class="mt-2 w-100 btn btn-lg btn-dark" type="submit">Log In</button>
+  </form>
+</div>
+{{end}}

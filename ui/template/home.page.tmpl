@@ -1,0 +1,37 @@
+{{template "base" .}}
+
+{{define "title"}}Home{{end}}
+
+{{define "main"}}
+<div class="container mt-3">
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+
+    <div class="col">
+      <div class="card rounded">
+        <div class="card-body">
+          <a class="link-dark" href="/note/{id}">
+            <h5 class="card-title">Note Title</h5>
+          </a>
+          <p class="fs-6 text-muted">Jan 07 2022</p>
+          <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+          <div class="d-flex justify-content-between">
+            <button type="button" class="btn .bg-transparent p-0" name="editButton">
+              <img src="/static/img/pencil-square.svg" alt="Edit Note" width="24">
+            </button>
+
+            <button type="button" class="btn .bg-transparent p-0" name="deleteButton" id="1">
+              <img src="/static/img/trash.svg" alt="Delete Note" width="24">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{{end}}
+
+{{define "script"}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.8/dist/sweetalert2.all.min.js"></script>
+<script src="/static/js/alert.js"></script>
+{{end}}
