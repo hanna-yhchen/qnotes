@@ -3,27 +3,37 @@
 {{define "title"}}Sign Up{{end}}
 
 {{define "main"}}
-<div class="form-auth form-signup">
-  <form action="/user/login" method="post" novalidate>
+<div class="form-auth">
+  <form class="flex-fill p-2" action="/user/signup" method="post" novalidate>
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
     <img class="mb-4" src="/static/img/person-circle.svg" alt="person-icon" width="52" height="52">
     <h1 class="h3 mb-3 fw-normal">Welcome!</h1>
 
-    <div class="form-floating">
-      <input type="text" class="form-control" id="floatingName" placeholder="Name">
+    {{with .Form}}
+    <div class="form-floating mb-2">
+      <input type="text" class="form-control {{with .Errors.Get "name"}}is-invalid{{end}}"
+             name="name" id="floatingName" placeholder="Name" value="{{.Get "name"}}"
+             aria-describedby="name-feedback">
       <label for="floatingName">Name</label>
+      {{with .Errors.Get "name"}}<div class="name-feedback invalid-feedback">{{.}}</div>{{end}}
     </div>
 
-    <div class="form-floating">
-      <input type="email" class="form-control" id="floatingEmail" placeholder="Email address">
+    <div class="form-floating mb-2">
+      <input type="email" class="form-control {{with .Errors.Get "email" }}is-invalid{{end}}"
+             name="email" id="floatingEmail" placeholder="Email address" value="{{.Get "email"}}"
+             aria-describedby="email-feedback">
       <label for="floatingEmail">Email address</label>
+      {{with .Errors.Get "email"}}<div class="email-feedback invalid-feedback">{{.}}</div>{{end}}
     </div>
 
-    <div class="form-floating">
-      <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
+    <div class="form-floating mb-2">
+      <input type="password" class="form-control {{with .Errors.Get "password" }}is-invalid{{end}}"
+             name="password" id="floatingPassword" placeholder="Password" aria-describedby="password-feedback">
       <label for="floatingPassword">Password</label>
+      {{with .Errors.Get "password"}}<div class="password-feedback invalid-feedback">{{.}}</div>{{end}}
     </div>
+    {{end}}
 
     <button class="mt-2 w-100 btn btn-lg btn-dark" type="submit">Sign Up</button>
   </form>

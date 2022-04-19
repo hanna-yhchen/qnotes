@@ -74,7 +74,7 @@ func addDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateDa
 	}
 
 	td.CSRFToken = nosurf.Token(r)
-	// td.IsAuthenticated = app.isAuthenticated(r)
-	//td.Flash = app.Session.PopString(r, "flash")
+	td.IsAuthenticated = helpers.IsAuthenticated(r)
+	td.Flash = app.Session.PopString(r, "flash")
 	return td
 }

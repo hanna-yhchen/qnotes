@@ -12,26 +12,13 @@ main {
   margin: auto;
   display: flex;
   padding-top: 40px;
+  width: 320px;
 }
 
 .form-auth .form-floating:focus-within {
   z-index: 2;
 }
 
-#floatingName,
-.form-login #floatingEmail {
-  margin-bottom: -1px;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-}
-
-.form-signup #floatingEmail {
-  margin-bottom: -1px;
-  border-radius: 0;
-}
-
-#floatingPassword {
-  margin-bottom: 10px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
+.invalid-feedback {
+  text-align: start;
 }

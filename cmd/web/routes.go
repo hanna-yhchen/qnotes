@@ -21,22 +21,22 @@ func routes() http.Handler {
 		middleware.SetHeader("X-Frame-Options", "deny"),
 	)
 
-	r.Use(app.Session.Enable, noSurf)
+	r.Use(app.Session.Enable, noSurf, authenticate)
 
 	r.Get("/", handlers.Home)
 
 	// RESTful routing
 	r.Route("/note", func(r chi.Router) {
 		r.Use(middleware.URLFormat)
-		//r.With().Get()
-		r.Get("/create", handlers.ShowCreateNote) // Need Auth
-		r.Post("/create", handlers.CreateNote)    // Need Auth
+		r.With(requireAuthentication).Get("/create", handlers.ShowCreateNote)
+		r.With(requireAuthentication).Post("/create", handlers.CreateNote)
 
 		r.Route("/{id}", func(r chi.Router) {
 			r.Use(noteContext)
 			r.Get("/", handlers.ShowNote)
-			r.Put("/", handlers.UpdateNote)    // Need Auth
-			r.Delete("/", handlers.DeleteNote) // Need Auth
+			r.With(requireAuthentication).Get("/edit", handlers.ShowEditNote)
+			r.With(requireAuthentication).Put("/", handlers.UpdateNote)
+			r.With(requireAuthentication).Delete("/", handlers.DeleteNote)
 		})
 	})
 
@@ -45,7 +45,7 @@ func routes() http.Handler {
 		r.Post("/signup", handlers.Signup)
 		r.Get("/login", handlers.ShowLogin)
 		r.Post("/login", handlers.Login)
-		r.Post("/logout", handlers.Logout) // Need Auth
+		r.With(requireAuthentication).Post("/logout", handlers.Logout)
 	})
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))

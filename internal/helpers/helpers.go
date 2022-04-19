@@ -10,6 +10,13 @@ import (
 
 var app *config.Application
 
+type contextKey string
+
+const (
+	ContextKeyNote            = contextKey("note")
+	ContextKeyIsAuthenticated = contextKey("isAuthenticated")
+)
+
 // NewHelpers sets the app configuration for the helpers package.
 func NewHelpers(a *config.Application) {
 	app = a
@@ -32,4 +39,14 @@ func ClientError(w http.ResponseWriter, status int) {
 // notFound is a convenience wrapper around 404 client error.
 func NotFound(w http.ResponseWriter) {
 	ClientError(w, http.StatusNotFound)
+}
+
+// IsAuthenticated indicates whether the current request is from an authenticated
+// user.
+func IsAuthenticated(r *http.Request) bool {
+	if isAuthenticated, ok := r.Context().Value(ContextKeyIsAuthenticated).(bool); ok {
+		return isAuthenticated
+	} else {
+		return false
+	}
 }

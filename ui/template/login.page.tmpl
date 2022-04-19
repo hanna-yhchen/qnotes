@@ -3,22 +3,37 @@
 {{define "title"}}Log In{{end}}
 
 {{define "main"}}
-<div class="form-auth form-login">
-  <form action="/user/login" method="post" novalidate>
+<div class="form-auth">
+  <form class="flex-fill p-2" action="/user/login" method="post" novalidate>
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
     <img class="mb-4" src="/static/img/person-circle.svg" alt="person-icon" width="52" height="52">
     <h1 class="h3 mb-3 fw-normal">Please log in</h1>
 
-    <div class="form-floating">
-      <input type="email" class="form-control" id="floatingEmail" placeholder="Email address">
+    {{with .Form}}
+    {{with .Errors.Get "generic"}}
+    <div class="alert alert-danger d-flex align-items-center" role="alert">
+      <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+        <use xlink:href="#exclamation-triangle-fill" />
+      </svg>
+      <div>
+        {{.}}
+      </div>
+    </div>
+    {{end}}
+
+    <div class="form-floating mb-2">
+      <input type="email" class="form-control" name="email" id="floatingEmail"
+             placeholder="Email address" value="{{.Get "email"}}">
       <label for="floatingEmail">Email address</label>
     </div>
 
-    <div class="form-floating">
-      <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
+    <div class="form-floating mb-2">
+      <input type="password" class="form-control" name="password" id="floatingPassword"
+             placeholder="Password">
       <label for="floatingPassword">Password</label>
     </div>
+    {{end}}
 
     <button class="mt-2 w-100 btn btn-lg btn-dark" type="submit">Log In</button>
   </form>

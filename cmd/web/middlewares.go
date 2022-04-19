@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"runtime"
 
@@ -11,10 +12,6 @@ import (
 	"github.com/hanna-yhchen/q-notes/internal/models"
 	"github.com/justinas/nosurf"
 )
-
-type contextKey string
-
-const contextKeyNote = contextKey("note")
 
 // logger returns a logger handler using a custom LogFormatter.
 func logger() func(http.Handler) http.Handler {
@@ -55,7 +52,55 @@ func noteContext(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyNote, note)
+		ctx := context.WithValue(r.Context(), helpers.ContextKeyNote, note)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// authenticate checks for auth status. If there is an active and authenticated
+// user ID existed in the session, then records this status in the context passing
+// through the follwing handler chain.
+func authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if exists := app.Session.Exists(r, "authenticatedUserID"); !exists {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		user, err := app.UserModel.Get(app.Session.GetInt(r, "authenticatedUserID"))
+		if errors.Is(err, models.ErrNoRecord) {
+			app.Session.Remove(r, "authenticatedUserID")
+			next.ServeHTTP(w, r)
+			return
+		} else if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
+
+		if !user.Active {
+			app.Session.Remove(r, "authenticatedUserID")
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), helpers.ContextKeyIsAuthenticated, true)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// requireAuthentication redirects the client to the login page if it is not
+// authenticated.
+func requireAuthentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !helpers.IsAuthenticated(r) {
+			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+			return
+		}
+
+		// Set the "Cache-Control: no-store" header so that any pages requiring
+		// authentication are not stored in the client's cache.
+		w.Header().Add("Cache-Control", "no-store")
+
+		next.ServeHTTP(w, r)
 	})
 }
