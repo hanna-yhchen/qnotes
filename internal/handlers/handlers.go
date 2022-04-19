@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/hanna-yhchen/q-notes/internal/config"
@@ -25,18 +26,39 @@ func Home(w http.ResponseWriter, r *http.Request) {
 
 // GET /note/{id}
 func ShowNote(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Show a specific note."))
-	// render.Template(w, r, "note.page.tmpl", &models.TemplateData{})
+	note := r.Context().Value(helpers.ContextKeyNote).(*models.Note)
+	render.Template(w, r, "note.page.tmpl", &models.TemplateData{Note: note})
 }
 
 // GET /note/create
 func ShowCreateNote(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Create new note."))
+	render.Template(w, r, "create.page.tmpl", &models.TemplateData{Form: forms.New(nil)})
 }
 
 // POST /note/create
 func CreateNote(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Create new note."))
+	if err := r.ParseForm(); err != nil {
+		helpers.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("title", "content")
+	form.MaxLength("title", 80)
+
+	if !form.IsValid() {
+		render.Template(w, r, "create.page.tmpl", &models.TemplateData{Form: form})
+		return
+	}
+
+	userID := app.Session.GetInt(r, "authenticatedUserID")
+
+	if id, err := app.NoteModel.Insert(userID, form.Get("title"), form.Get("content")); err == nil {
+		app.Session.Put(r, "flash", "You have created a new note successfully!")
+		http.Redirect(w, r, fmt.Sprintf("/note/%d", id), http.StatusSeeOther)
+	} else {
+		helpers.ServerError(w, err)
+	}
 }
 
 // GET /note/{id}/edit

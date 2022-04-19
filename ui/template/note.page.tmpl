@@ -1,0 +1,31 @@
+{{template "base" .}}
+
+{{define "title"}}Home{{end}}
+
+{{define "main"}}
+{{with .Note}}
+<div class="col-9 p-0 mt-3">
+  <div class="card rounded">
+    <div class="card-body">
+      <h3 class="card-title">{{.Title}}</h5>
+        <p class="fs-6 text-muted">Last update: {{.LastUpdate}}</p>
+        <p class="card-text">{{.Content}}</p>
+        <div class="d-flex justify-content-between">
+          <button type="button" class="btn .bg-transparent p-0" name="editButton">
+            <img src="/static/img/pencil-square.svg" alt="Edit Note" width="24">
+          </button>
+
+          <button type="button" class="btn .bg-transparent p-0" name="deleteButton" id="1">
+            <img src="/static/img/trash.svg" alt="Delete Note" width="24">
+          </button>
+        </div>
+    </div>
+  </div>
+</div>
+{{end}}
+{{end}}
+
+{{define "script"}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.8/dist/sweetalert2.all.min.js"></script>
+<script src="/static/js/alert.js"></script>
+{{end}}

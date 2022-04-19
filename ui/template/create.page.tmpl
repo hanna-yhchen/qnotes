@@ -1,0 +1,29 @@
+{{template "base" .}}
+
+{{define "title"}}Add a New Note{{end}}
+
+{{define "main"}}
+<div class="col-9 p-0 mt-3">
+  <form class="flex-fill" action="/note/create" method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+    {{with .Form}}
+    <div class="mb-3">
+      <label for="titleInput" class="form-label">Title</label>
+      <input type="text" class="form-control {{with .Errors.Get "title"}}is-invalid{{end}}"
+             id="titleInput" name="title" value="{{.Get "title"}}">
+      {{with .Errors.Get "title"}}<div class="invalid-feedback">{{.}}</div>{{end}}
+    </div>
+
+    <div class="mb-3">
+      <label for="contentArea" class="form-label">Content</label>
+      <textarea class="form-control {{with .Errors.Get "content"}}is-invalid{{end}}"
+                id="contentArea" name="content" rows="10">{{.Get "content"}}</textarea>
+      {{with .Errors.Get "content"}}<div class="invalid-feedback">{{.}}</div>{{end}}
+    </div>
+    {{end}}
+
+    <button class="mt-2 w-100 btn btn-lg btn-dark" type="submit">Create</button>
+  </form>
+</div>
+{{end}}

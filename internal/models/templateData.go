@@ -7,6 +7,6 @@ type TemplateData struct {
 	Flash           string
 	Form            *forms.Form
 	IsAuthenticated bool
-	Note            Note
-	Notes           []Note
+	Note            *Note
+	Notes           []*Note
 }

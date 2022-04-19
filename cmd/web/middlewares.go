@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"runtime"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -32,23 +33,23 @@ func noSurf(next http.Handler) http.Handler {
 	return csrfHandler
 }
 
-// noteContext loads a note object from the URL parameter and adds it to the context.
+// noteContext loads a note object based on the URL parameter and adds it to
+// the context.
 func noteContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var note *models.Note
-
-		if id := chi.URLParam(r, "id"); id != "" {
-			// note, err := app.noteModel.Get(id)
-			// if err != nil {
-			// 	if errors.Is(err, models.ErrNoRecord) {
-			// 		app.notFound(w)
-			// 	} else {
-			// 		app.serverError(w, err)
-			// 	}
-			// 	return
-			// }
-		} else {
+		id, err := strconv.Atoi(chi.URLParam(r, "id"))
+		if err != nil || id < 1 {
 			helpers.NotFound(w)
+			return
+		}
+
+		note, err := app.NoteModel.Get(id)
+		if err != nil {
+			if errors.Is(err, models.ErrNoRecord) {
+				helpers.NotFound(w)
+			} else {
+				helpers.ServerError(w, err)
+			}
 			return
 		}
 
