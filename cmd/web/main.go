@@ -12,11 +12,12 @@ import (
 	"github.com/hanna-yhchen/q-notes/internal/config"
 	"github.com/hanna-yhchen/q-notes/internal/handlers"
 	"github.com/hanna-yhchen/q-notes/internal/helpers"
+	"github.com/hanna-yhchen/q-notes/internal/models/mysql"
 	"github.com/hanna-yhchen/q-notes/internal/render"
 )
 
 var (
-	app    config.Application
+	app    *config.Application
 	addr   = flag.String("addr", ":8080", "HTTP network address")
 	secret = flag.String("secret", "Aof@fpaOEdAJepFls=(5&aBPeKOfjAk3", "Secret key for the session cookies")
 	dsn    = flag.String("dsn", "web:pass@/qnotes?parseTime=true", "MySQL data source name")
@@ -35,9 +36,8 @@ func main() {
 
 	defer db.Close()
 
-	helpers.NewHelpers(&app)
-	render.NewRenderer(&app)
-	handlers.NewHandlers(&app)
+	app.NoteModel = &mysql.NoteModel{DB: db}
+	app.UserModel = &mysql.UserModel{DB: db}
 
 	srv := &http.Server{
 		Addr:     *addr,
@@ -49,7 +49,8 @@ func main() {
 	app.ErrorLog.Fatal(srv.ListenAndServe())
 }
 
-func newApp() config.Application {
+// newApp setups and returns an app-wide configuration.
+func newApp() *config.Application {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.LstdFlags|log.Lshortfile)
 	infoLog := log.New(os.Stdout, "INFO\t", log.LstdFlags)
 
@@ -57,7 +58,7 @@ func newApp() config.Application {
 	session.Lifetime = 12 * time.Hour
 	// session.Secure = true
 
-	app := config.Application{
+	app := &config.Application{
 		ErrorLog: errorLog,
 		InfoLog:  infoLog,
 		Session:  session,
@@ -69,6 +70,10 @@ func newApp() config.Application {
 	}
 
 	app.TemplateCache = tc
+
+	helpers.NewHelpers(app)
+	render.NewRenderer(app)
+	handlers.NewHandlers(app)
 
 	return app
 }

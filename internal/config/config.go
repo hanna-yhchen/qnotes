@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/golangcollege/sessions"
+	"github.com/hanna-yhchen/q-notes/internal/models/mysql"
 )
 
 // Application holds the app-wide dependencies.
@@ -13,6 +14,6 @@ type Application struct {
 	InfoLog       *log.Logger
 	Session       *sessions.Session
 	TemplateCache map[string]*template.Template
-	// noteModel
-	// userModel
+	NoteModel     *mysql.NoteModel
+	UserModel     *mysql.UserModel
 }
