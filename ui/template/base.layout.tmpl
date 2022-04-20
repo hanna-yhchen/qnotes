@@ -31,18 +31,23 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <div class="navbar-nav me-auto">
             <a class="nav-link active" aria-current="page" href="/">Home</a>
+            {{if .IsAuthenticated}}
             <a class="nav-link" href="/note/create">Add</a>
+            {{end}}
           </div>
 
+          {{if .IsAuthenticated}}
           <form class="me-2 mt-2">
             <input class="form-control" type="search" placeholder="Search" aria-label="Search">
           </form>
-          <a class="btn btn-outline-dark me-2 mt-2" href="/user/login">Log In</a>
-          <a class="btn btn-dark me-2 mt-2" href="/user/signup">Sign Up</a>
           <form action="/user/logout" method="post">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <button class="btn btn-outline-dark me-2 mt-2">Log Out</button>
           </form>
+          {{else}}
+          <a class="btn btn-outline-dark me-2 mt-2" href="/user/login">Log In</a>
+          <a class="btn btn-dark me-2 mt-2" href="/user/signup">Sign Up</a>
+          {{end}}
         </div>
 
       </div>

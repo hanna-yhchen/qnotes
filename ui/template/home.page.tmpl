@@ -5,26 +5,58 @@
 {{define "main"}}
 <div class="row row-cols-1 row-cols-md-3 g-4 mt-0">
 
+  {{if .IsAuthenticated}}
+  {{range .Notes}}
   <div class="col">
     <div class="card rounded">
       <div class="card-body">
-        <a class="link-dark" href="/note/{id}">
-          <h5 class="card-title">Note Title</h5>
+        <a class="link-dark" href="/note/{{.ID}}">
+          <h5 class="card-title">{{.Title}}</h5>
         </a>
-        <p class="fs-6 text-muted">Jan 07 2022</p>
-        <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+        <p class="fs-6 text-muted">{{formattedDate .LastUpdate}}</p>
+        <p class="card-text">{{.Content}}</p>
         <div class="d-flex justify-content-between">
-          <button type="button" class="btn .bg-transparent p-0" name="editButton">
+          <a class="btn .bg-transparent p-0" href="/note/{{.ID}}/edit">
             <img src="/static/img/pencil-square.svg" alt="Edit Note" width="24">
-          </button>
-
-          <button type="button" class="btn .bg-transparent p-0" name="deleteButton" id="1">
+          </a>
+          <button type="button" class="btn .bg-transparent p-0" name="deleteButton" id="{{.ID}}">
             <img src="/static/img/trash.svg" alt="Delete Note" width="24">
           </button>
         </div>
       </div>
     </div>
   </div>
+  {{else}}
+  <div class="col">
+    <div class="card rounded">
+      <div class="card-body">
+        <a class="link-dark" href="#">
+          <h5 class="card-title">Hello!</h5>
+        </a>
+        <p class="card-text">
+          You haven't created any note yet.
+          <a class="link-dark" href="/note/create">Click here</a> to add a new note.
+        </p>
+      </div>
+    </div>
+  </div>
+  {{end}}
+
+  {{else}}
+  <div class="col">
+    <div class="card rounded">
+      <div class="card-body">
+        <a class="link-dark" href="#">
+          <h5 class="card-title">Welcome!</h5>
+        </a>
+        <p class="card-text">
+          Please <a class="link-dark" href="/user/login">log in</a>
+          or <a class="link-dark" href="/user/signup">sign up</a> to continue.
+        </p>
+      </div>
+    </div>
+  </div>
+  {{end}}
 
 </div>
 {{end}}

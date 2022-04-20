@@ -21,6 +21,16 @@ func NewHandlers(a *config.Application) {
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {
+	if helpers.IsAuthenticated(r) {
+		userID := app.Session.GetInt(r, "authenticatedUserID")
+		if notes, err := app.NoteModel.Latest(userID); err == nil {
+			render.Template(w, r, "home.page.tmpl", &models.TemplateData{Notes: notes})
+			return
+		} else {
+			helpers.ServerError(w, err)
+			return
+		}
+	}
 	render.Template(w, r, "home.page.tmpl", &models.TemplateData{})
 }
 

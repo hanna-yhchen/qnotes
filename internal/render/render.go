@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/hanna-yhchen/q-notes/internal/config"
 	"github.com/hanna-yhchen/q-notes/internal/helpers"
@@ -13,7 +14,12 @@ import (
 	"github.com/justinas/nosurf"
 )
 
-var app *config.Application
+var (
+	app     *config.Application
+	funcMap = template.FuncMap{
+		"formattedDate": formattedDate,
+	}
+)
 
 // NewRenderer sets the app configuration for the render package.
 func NewRenderer(a *config.Application) {
@@ -51,7 +57,7 @@ func NewTemplateCache(dir string) (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 
-		ts, err := template.New(name).ParseFiles(page)
+		ts, err := template.New(name).Funcs(funcMap).ParseFiles(page)
 		if err != nil {
 			return nil, err
 		}
@@ -77,4 +83,9 @@ func addDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateDa
 	td.IsAuthenticated = helpers.IsAuthenticated(r)
 	td.Flash = app.Session.PopString(r, "flash")
 	return td
+}
+
+// formattedDate returns the formatted date string.
+func formattedDate(t time.Time) string {
+	return t.Format("02 Jan 2006 at 15:04")
 }

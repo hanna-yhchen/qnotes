@@ -8,7 +8,7 @@
   <div class="card rounded">
     <div class="card-body">
       <h3 class="card-title">{{.Title}}</h5>
-        <p class="fs-6 text-muted">Last update: {{.LastUpdate}}</p>
+        <p class="fs-6 text-muted">Last update: {{formattedDate .LastUpdate}}</p>
         <p class="card-text">{{.Content}}</p>
         <div class="d-flex justify-content-between">
 
