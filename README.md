@@ -1,6 +1,12 @@
 # QNotes
 A simple note-taking web app built with Go.
 
+## Demo
+The app is deployed on Heroku: https://qnotes-go.herokuapp.com/
+Sign up a new user or just log in with the test account:
+email: test@example.com
+password: abc123
+
 ## Features
 - User Authentication
 - View/Create/Edit/Delete Notes (in Plain Text) with Authentication
