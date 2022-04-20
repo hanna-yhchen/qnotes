@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/hanna-yhchen/q-notes/internal/config"
 	"github.com/hanna-yhchen/q-notes/internal/forms"
@@ -20,19 +21,35 @@ func NewHandlers(a *config.Application) {
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {
-	app.InfoLog.Println("Show Home Page")
 	render.Template(w, r, "home.page.tmpl", &models.TemplateData{})
 }
 
 // GET /note/{id}
 func ShowNote(w http.ResponseWriter, r *http.Request) {
+	isAuthor := r.Context().Value(helpers.ContextKeyIsAuthor).(bool)
+	if !isAuthor {
+		app.Session.Put(r, "flash", "You are not authorized to access the page.")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	note := r.Context().Value(helpers.ContextKeyNote).(*models.Note)
+
+	userID := note.UserID
+	if userID != app.Session.GetInt(r, "authenticatedUserID") {
+		app.Session.Put(r, "flash", "You are not authorized to access the page.")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	}
+
 	render.Template(w, r, "note.page.tmpl", &models.TemplateData{Note: note})
 }
 
 // GET /note/create
 func ShowCreateNote(w http.ResponseWriter, r *http.Request) {
-	render.Template(w, r, "create.page.tmpl", &models.TemplateData{Form: forms.New(nil)})
+	render.Template(w, r, "edit.page.tmpl", &models.TemplateData{
+		Form:  forms.New(nil),
+		IsNew: true,
+	})
 }
 
 // POST /note/create
@@ -47,7 +64,10 @@ func CreateNote(w http.ResponseWriter, r *http.Request) {
 	form.MaxLength("title", 80)
 
 	if !form.IsValid() {
-		render.Template(w, r, "create.page.tmpl", &models.TemplateData{Form: form})
+		render.Template(w, r, "edit.page.tmpl", &models.TemplateData{
+			Form:  form,
+			IsNew: true,
+		})
 		return
 	}
 
@@ -63,18 +83,87 @@ func CreateNote(w http.ResponseWriter, r *http.Request) {
 
 // GET /note/{id}/edit
 func ShowEditNote(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Edit a specific note."))
+	isAuthor := r.Context().Value(helpers.ContextKeyIsAuthor).(bool)
+	if !isAuthor {
+		app.Session.Put(r, "flash", "You are not authorized to access the page.")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	note := r.Context().Value(helpers.ContextKeyNote).(*models.Note)
+
+	form := forms.New(url.Values{})
+	form.Add("title", note.Title)
+	form.Add("content", note.Content)
+
+	render.Template(w, r, "edit.page.tmpl", &models.TemplateData{
+		Form:   form,
+		IsNew:  false,
+		NoteID: note.ID,
+	})
 }
 
-// PUT /note/{id}
+// POST /note/{id}
 func UpdateNote(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Update a specific note."))
+	isAuthor := r.Context().Value(helpers.ContextKeyIsAuthor).(bool)
+	if !isAuthor {
+		app.Session.Put(r, "flash", "You are not authorized to do this.")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	note := r.Context().Value(helpers.ContextKeyNote).(*models.Note)
+
+	if err := r.ParseForm(); err != nil {
+		helpers.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("title", "content")
+	form.MaxLength("title", 80)
+
+	if !form.IsValid() {
+		render.Template(w, r, "edit.page.tmpl", &models.TemplateData{
+			Form:   form,
+			IsNew:  false,
+			NoteID: note.ID,
+		})
+		return
+	}
+
+	note.Title = form.Get("title")
+	note.Content = form.Get("content")
+
+	if err := app.NoteModel.Update(note); err == nil {
+		app.Session.Put(r, "flash", "The note has been updated successfully!")
+		http.Redirect(w, r, fmt.Sprintf("/note/%d", note.ID), http.StatusSeeOther)
+	} else {
+		helpers.ServerError(w, err)
+	}
 }
 
 // DELETE /note/{id}
 func DeleteNote(w http.ResponseWriter, r *http.Request) {
-	app.InfoLog.Println("Call Delete")
-	w.Write([]byte("Delete a specific note."))
+	isAuthor := r.Context().Value(helpers.ContextKeyIsAuthor).(bool)
+	if !isAuthor {
+		app.Session.Put(r, "flash", "You are not authorized to do this.")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	note := r.Context().Value(helpers.ContextKeyNote).(*models.Note)
+
+	if err := app.NoteModel.Delete(note.ID); err == nil {
+		// FIXME: JS Fetch API doesn't redirect automatically!
+		// Temporary solution: Redirect manually in JS and fire a Swal.
+
+		// app.Session.Put(r, "flash", "The note has been deleted.")
+		// http.Redirect(w, r, "/", http.StatusSeeOther)
+		w.WriteHeader(http.StatusOK)
+	} else {
+		helpers.ServerError(w, err)
+	}
 }
 
 // GET /user/signup

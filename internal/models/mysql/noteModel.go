@@ -76,7 +76,7 @@ WHERE user_id = ? ORDER BY last_update DESC LIMIT 10`
 }
 
 // Update updates a specific note in the database.
-func (m *NoteModel) Update(note models.Note) error {
+func (m *NoteModel) Update(note *models.Note) error {
 	statement := `UPDATE notes SET title = ?, content = ?, last_update = UTC_TIMESTAMP()
 WHERE id = ?`
 

@@ -33,8 +33,8 @@ func noSurf(next http.Handler) http.Handler {
 	return csrfHandler
 }
 
-// noteContext loads a note object based on the URL parameter and adds it to
-// the context.
+// noteContext loads a note object based on the URL parameter and checks if the
+// the client is the author.
 func noteContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -53,7 +53,10 @@ func noteContext(next http.Handler) http.Handler {
 			return
 		}
 
+		isAuthor := note.UserID == app.Session.GetInt(r, "authenticatedUserID")
+
 		ctx := context.WithValue(r.Context(), helpers.ContextKeyNote, note)
+		ctx = context.WithValue(ctx, helpers.ContextKeyIsAuthor, isAuthor)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

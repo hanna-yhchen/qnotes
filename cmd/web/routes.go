@@ -35,7 +35,7 @@ func routes() http.Handler {
 			r.Use(noteContext)
 			r.Get("/", handlers.ShowNote)
 			r.With(requireAuthentication).Get("/edit", handlers.ShowEditNote)
-			r.With(requireAuthentication).Put("/", handlers.UpdateNote)
+			r.With(requireAuthentication).Post("/", handlers.UpdateNote)
 			r.With(requireAuthentication).Delete("/", handlers.DeleteNote)
 		})
 	})

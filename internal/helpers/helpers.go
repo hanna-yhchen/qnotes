@@ -15,6 +15,7 @@ type contextKey string
 const (
 	ContextKeyNote            = contextKey("note")
 	ContextKeyIsAuthenticated = contextKey("isAuthenticated")
+	ContextKeyIsAuthor        = contextKey("isAuthor")
 )
 
 // NewHelpers sets the app configuration for the helpers package.

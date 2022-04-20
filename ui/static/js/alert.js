@@ -16,6 +16,7 @@ deleteButtons.forEach(element => {
         const formData = new FormData()
         formData.append("csrf_token", csrf)
 
+        var html = ""
         fetch(`/note/${element.id}`, {
           method: "DELETE",
           body: formData
@@ -34,7 +35,7 @@ deleteButtons.forEach(element => {
               icon: "success",
               confirmButtonColor: "var(--bs-dark)",
               willClose: () => {
-                window.location.reload()
+                window.location.assign("/")
               }
             })
           }

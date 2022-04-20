@@ -9,4 +9,6 @@ type TemplateData struct {
 	IsAuthenticated bool
 	Note            *Note
 	Notes           []*Note
+	NoteID          int
+	IsNew           bool
 }

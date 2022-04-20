@@ -1,10 +1,22 @@
 {{template "base" .}}
 
-{{define "title"}}Add a New Note{{end}}
+{{define "title"}}
+{{if .IsNew}}
+Create a Note
+{{else}}
+Edit a Note
+{{end}}
+{{end}}
 
 {{define "main"}}
 <div class="col-9 p-0 mt-3">
-  <form class="flex-fill" action="/note/create" method="post" novalidate>
+  <form class="flex-fill"
+        {{if .IsNew}}
+        action="/note/create"
+        {{else}}
+        action="/note/{{.NoteID}}"
+        {{end}}
+        method="post" novalidate>
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
     {{with .Form}}
@@ -23,7 +35,13 @@
     </div>
     {{end}}
 
-    <button class="mt-2 w-100 btn btn-lg btn-dark" type="submit">Create</button>
+    <button class="mt-2 w-100 btn btn-lg btn-dark" type="submit">
+      {{if .IsNew}}
+      Create
+      {{else}}
+      Save
+      {{end}}
+    </button>
   </form>
 </div>
 {{end}}
