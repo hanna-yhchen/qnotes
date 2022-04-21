@@ -13,9 +13,9 @@ Please sign up a new user to explore or just log in with the test account:
 - View/Create/Edit/Delete Notes (in Plain Text) with Authentication
 - Form Validation
 - RESTful Routes (e.g. /note/{id} for showing a specific note page)
+- Search Notes' Title/Content with Exactly Matched Word
 
 TODO:
-- [ ] Search Notes
 - [ ] Markdown Support
 
 ## Technologies
