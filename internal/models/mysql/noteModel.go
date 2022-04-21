@@ -93,3 +93,38 @@ func (m *NoteModel) Delete(id int) error {
 
 	return err
 }
+
+// Search returns the 10 most recently updated notes where title or content contains the given string.
+func (m *NoteModel) Search(text string) ([]*models.Note, error) {
+	statement := `SELECT id, user_id, title, content, last_update FROM notes
+WHERE MATCH (title,content) AGAINST(?) ORDER BY last_update DESC LIMIT 10`
+
+	rows, err := m.DB.Query(statement, text)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	return getNotesFromRows(rows)
+}
+
+// getNotesFromRows scans each row into a note object and returns the collection.
+func getNotesFromRows(rows *sql.Rows) ([]*models.Note, error) {
+	notes := []*models.Note{}
+
+	for rows.Next() {
+		n := &models.Note{}
+		if err := rows.Scan(&n.ID, &n.UserID, &n.Title, &n.Content, &n.LastUpdate); err != nil {
+			return nil, err
+		}
+
+		notes = append(notes, n)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return notes, nil
+}

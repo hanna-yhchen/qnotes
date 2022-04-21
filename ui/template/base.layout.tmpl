@@ -37,8 +37,12 @@
           </div>
 
           {{if .IsAuthenticated}}
-          <form class="me-2 mt-2">
-            <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+          <form action="/search" method="post" class="me-2 mt-2">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <input class="form-control" type="search" name="target" placeholder="Search" aria-label="Search"
+                   {{with .Form}}
+                   value="{{.Get "target"}}"
+                   {{end}}>
           </form>
           <form action="/user/logout" method="post">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">

@@ -250,3 +250,38 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	app.Session.Put(r, "flash", "You've been logged out.")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+// POST /search
+func Search(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		helpers.ClientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("target")
+	form.MinLength("target", 4)
+
+	if !form.IsValid() {
+		app.Session.Put(r, "flash", "The minimum length for searching is 4 characters.")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	target := form.Get("target")
+	if notes, err := app.NoteModel.Search(target); err == nil {
+		if len(notes) == 0 {
+			app.Session.Put(r, "flash", fmt.Sprintf("No results for %q", target))
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+		} else {
+			render.Template(w, r, "home.page.tmpl", &models.TemplateData{
+				Form:  form,
+				Notes: notes,
+			})
+		}
+		return
+	} else {
+		helpers.ServerError(w, err)
+		return
+	}
+}

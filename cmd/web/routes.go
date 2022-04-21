@@ -24,6 +24,7 @@ func routes() http.Handler {
 	r.Use(app.Session.Enable, noSurf, authenticate)
 
 	r.Get("/", handlers.Home)
+	r.With(requireAuthentication).Post("/search", handlers.Search)
 
 	// RESTful routing
 	r.Route("/note", func(r chi.Router) {
