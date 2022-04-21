@@ -25,18 +25,47 @@ var (
 )
 
 func main() {
+	srv, closeDB := setupApp()
+	defer closeDB()
+
+	app.InfoLog.Printf("Starting server on %s", *addr)
+	app.ErrorLog.Fatal(srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem"))
+}
+
+// setupApp setups app-wide config. Return a http.server and a function to close
+// database connection.
+func setupApp() (*http.Server, func()) {
 	flag.Parse()
-	app = newApp()
+
+	errorLog := log.New(os.Stderr, "ERROR\t", log.LstdFlags|log.Lshortfile)
+	infoLog := log.New(os.Stdout, "INFO\t", log.LstdFlags)
+
+	session := sessions.New([]byte(*secret))
+	session.Lifetime = 12 * time.Hour
+	session.Secure = true
+
+	tc, err := render.NewTemplateCache("./ui/template/")
+	if err != nil {
+		errorLog.Fatal(err)
+	}
 
 	db, err := openDB(*dsn)
 	if err != nil {
-		app.ErrorLog.Fatal(err)
+		errorLog.Fatal(err)
 	}
 
-	defer db.Close()
+	app = &config.Application{
+		ErrorLog: errorLog,
+		InfoLog:  infoLog,
+		Session:  session,
+		TemplateCache: tc,
+		NoteModel: &mysql.NoteModel{DB: db},
+		UserModel: &mysql.UserModel{DB: db},
+	}
 
-	app.NoteModel = &mysql.NoteModel{DB: db}
-	app.UserModel = &mysql.UserModel{DB: db}
+	helpers.NewHelpers(app)
+	render.NewRenderer(app)
+	handlers.NewHandlers(app)
 
 	tlsConfig := &tls.Config{
 		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
@@ -49,37 +78,9 @@ func main() {
 		TLSConfig: tlsConfig,
 	}
 
-	app.InfoLog.Printf("Starting server on %s", *addr)
-	app.ErrorLog.Fatal(srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem"))
-}
-
-// newApp setups and returns an app-wide configuration.
-func newApp() *config.Application {
-	errorLog := log.New(os.Stderr, "ERROR\t", log.LstdFlags|log.Lshortfile)
-	infoLog := log.New(os.Stdout, "INFO\t", log.LstdFlags)
-
-	session := sessions.New([]byte(*secret))
-	session.Lifetime = 12 * time.Hour
-	session.Secure = true
-
-	app := &config.Application{
-		ErrorLog: errorLog,
-		InfoLog:  infoLog,
-		Session:  session,
+	return srv, func() {
+		db.Close()
 	}
-
-	tc, err := render.NewTemplateCache("./ui/template/")
-	if err != nil {
-		errorLog.Fatal(err)
-	}
-
-	app.TemplateCache = tc
-
-	helpers.NewHelpers(app)
-	render.NewRenderer(app)
-	handlers.NewHandlers(app)
-
-	return app
 }
 
 // openDB wraps sql.Open and returns a sql.DB connection pool for the given DSN.
