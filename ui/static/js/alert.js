@@ -16,7 +16,6 @@ deleteButtons.forEach(element => {
         const formData = new FormData()
         formData.append("csrf_token", csrf)
 
-        var html = ""
         fetch(`/note/${element.id}`, {
           method: "DELETE",
           body: formData

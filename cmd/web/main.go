@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"log"
@@ -21,8 +22,6 @@ var (
 	addr   = flag.String("addr", ":8080", "HTTP network address")
 	secret = flag.String("secret", "Aof@fpaOEdAJepFls=(5&aBPeKOfjAk3", "Secret key for the session cookies")
 	dsn    = flag.String("dsn", "web:pass@/qnotes?parseTime=true", "MySQL data source name")
-	// TODO: Setup MySQL tables for demo mode.
-	// demo := flag.Bool("demo", "false", "Demo mode")
 )
 
 func main() {
@@ -39,14 +38,19 @@ func main() {
 	app.NoteModel = &mysql.NoteModel{DB: db}
 	app.UserModel = &mysql.UserModel{DB: db}
 
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
+
 	srv := &http.Server{
 		Addr:     *addr,
 		ErrorLog: app.ErrorLog,
 		Handler:  routes(),
+		TLSConfig: tlsConfig,
 	}
 
 	app.InfoLog.Printf("Starting server on %s", *addr)
-	app.ErrorLog.Fatal(srv.ListenAndServe())
+	app.ErrorLog.Fatal(srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem"))
 }
 
 // newApp setups and returns an app-wide configuration.
@@ -56,7 +60,7 @@ func newApp() *config.Application {
 
 	session := sessions.New([]byte(*secret))
 	session.Lifetime = 12 * time.Hour
-	// session.Secure = true
+	session.Secure = true
 
 	app := &config.Application{
 		ErrorLog: errorLog,
